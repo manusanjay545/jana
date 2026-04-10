@@ -116,40 +116,70 @@
       color: #555;
     }
 
-    /* GIF popup - hidden by default */
-    .gif-card {
-      display: none;
-      background: #fff;
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    /* Full-screen GIF popup overlay */
+    .gif-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
     }
 
-    .gif-card.visible {
-      display: block;
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    .gif-card img {
-      width: 100%;
-      display: block;
+    .gif-overlay .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-size: 28px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
     }
 
-    .gif-card .caption {
-      padding: 14px 16px;
+    .gif-overlay .close-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .gif-overlay img {
+      max-width: 90vw;
+      max-height: 70vh;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      object-fit: contain;
+    }
+
+    .gif-overlay .caption {
       text-align: center;
+      margin-top: 20px;
     }
 
-    .gif-card .caption h2 {
-      font-size: 15px;
-      font-weight: 700;
+    .gif-overlay .caption h2 {
+      font-size: 22px;
+      font-weight: 800;
       color: #e53935;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
-    .gif-card .caption p {
-      font-size: 13px;
-      color: #888;
+    .gif-overlay .caption p {
+      font-size: 15px;
+      color: #ccc;
     }
 
     /* Download Button */
@@ -506,20 +536,34 @@
     }
 
     function handleDownload() {
-      const container = document.getElementById('gifContainer');
-      // Only inject once
-      if (!container.hasChildNodes()) {
-        container.innerHTML = `
-          <article class="gif-card visible">
-            <img src="https://media1.tenor.com/m/znx_AntI870AAAAC/gorilla-middle-finger.gif" alt="download result">
-            <div class="caption">
-              <h2>😂 No piracy here!</h2>
-              <p>Nice try — support the movie by watching in theatres</p>
-            </div>
-          </article>
-        `;
-      }
-      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Remove existing overlay if any
+      const existing = document.getElementById('gifOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'gif-overlay';
+      overlay.id = 'gifOverlay';
+      overlay.innerHTML = `
+        <button class="close-btn" onclick="closePopup()" aria-label="Close">✕</button>
+        <img src="https://media1.tenor.com/m/znx_AntI870AAAAC/gorilla-middle-finger.gif" alt="download result">
+        <div class="caption">
+          <h2>😂 No piracy here!</h2>
+          <p>Nice try — support the movie by watching in theatres</p>
+        </div>
+      `;
+      // Close on backdrop click
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closePopup();
+      });
+      document.body.appendChild(overlay);
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePopup() {
+      const overlay = document.getElementById('gifOverlay');
+      if (overlay) overlay.remove();
+      document.body.style.overflow = '';
     }
 
     function shareWhatsApp() {
